@@ -1,5 +1,12 @@
 import defaultOptions from './defaultOptions.js'
 
+const toArray =  collects => {
+  if (Array.isArray(collects))
+    return collects
+
+  return Array.prototype.slice.call(collects)
+}
+
 const itemHandlerWrapper = (item, options) => () => {
   options.itemCallback(item, options)
 }
@@ -17,14 +24,14 @@ const iteratorWrapper = (itemHandlers, items, options) => () => {
 
 const parseItems = (items, options) => {
   if (items && items.length) {
-    const { childrenKey } = options
-
+    const { childrenKey, allowedChildrenCallback } = options
+    items = toArray(items)
     const r = items.map(item => {
       const { [childrenKey]: children } = item || {}
 
       return [
         item ? itemHandlerWrapper(item, options) : null,
-        children ? parseItems(children, options) : null
+        children && allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null
       ]
     })
 

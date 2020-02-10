@@ -1,5 +1,14 @@
-import walkTree from './generateTreeParser'
+import walkTree from './treeWalker'
 
 export default function treeWalker (data, options) {
-  return walkTree(data, options)()
+  const parser = walkTree(data, options)
+
+  if (parser) {
+    console.log('Walking...')
+    parser()
+  } else {
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Skip walking!')
+    }
+  }
 }

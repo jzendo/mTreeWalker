@@ -5,7 +5,7 @@ const outputChildren = items =>
   items.map(({ name }) => `child: "${name}"`)
   .join(', ')
 
-console.log('\n\nOuput:')
+console.log('\n\nOuput:\n')
 
 treeWalker(data, {
   itemCallback: item => {

@@ -1,9 +1,26 @@
 /**
  * a tool for tree walker v0.1.0
- * author by jzendo, publish date: Mon, 10 Feb 2020 14:41:24 GMT
+ * author by jzendo, publish date: Tue, 11 Feb 2020 04:24:30 GMT
  */
 
 const ctor = () => {};
+
+const ensureAllowedChildrenCallback = options => {
+  const key = 'allowedChildrenCallback';
+
+  if (options[key]) {
+    return options
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`Use default callback, pleas check "${key}" option.`);
+  }
+
+  return {
+    ...options,
+    [key]: () => true
+  }
+};
 
 const ensureIteratorHandler = options => {
   if (options.itemCallback && options.childrenCallback) {
@@ -43,8 +60,16 @@ const defaultOptions = options => {
   return {
     ...options_,
     ...ensureChildrenKey(options_),
-    ...ensureIteratorHandler(options_)
+    ...ensureIteratorHandler(options_),
+    ...ensureAllowedChildrenCallback(options_)
   }
+};
+
+const toArray =  collects => {
+  if (Array.isArray(collects))
+    return collects
+
+  return Array.prototype.slice.call(collects)
 };
 
 const itemHandlerWrapper = (item, options) => () => {
@@ -64,14 +89,14 @@ const iteratorWrapper = (itemHandlers, items, options) => () => {
 
 const parseItems = (items, options) => {
   if (items && items.length) {
-    const { childrenKey } = options;
-
+    const { childrenKey, allowedChildrenCallback } = options;
+    items = toArray(items);
     const r = items.map(item => {
       const { [childrenKey]: children } = item || {};
 
       return [
         item ? itemHandlerWrapper(item, options) : null,
-        children ? parseItems(children, options) : null
+        children && allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null
       ]
     });
 
@@ -87,7 +112,16 @@ var walkTree = (items, options) => {
 };
 
 function treeWalker (data, options) {
-  return walkTree(data, options)()
+  const parser = walkTree(data, options);
+
+  if (parser) {
+    console.log('Walking...');
+    parser();
+  } else {
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Skip walking!');
+    }
+  }
 }
 
 export default treeWalker;

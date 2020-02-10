@@ -1,6 +1,23 @@
 
 const ctor = () => {}
 
+const ensureAllowedChildrenCallback = options => {
+  const key = 'allowedChildrenCallback'
+
+  if (options[key]) {
+    return options
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`Use default callback, pleas check "${key}" option.`)
+  }
+
+  return {
+    ...options,
+    [key]: () => true
+  }
+}
+
 const ensureIteratorHandler = options => {
   if (options.itemCallback && options.childrenCallback) {
     return options
@@ -39,7 +56,8 @@ const defaultOptions = options => {
   return {
     ...options_,
     ...ensureChildrenKey(options_),
-    ...ensureIteratorHandler(options_)
+    ...ensureIteratorHandler(options_),
+    ...ensureAllowedChildrenCallback(options_)
   }
 }
 
