@@ -1,3 +1,8 @@
+/**
+ * a tool for tree walker v0.1.0
+ * author by jzendo, publish date: Mon, 10 Feb 2020 14:41:24 GMT
+ */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -103,7 +108,7 @@
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.warn("Use default callback, pleas check \"itemCallback\" and \"childrenCallback\" option.");
+      console.warn('Use default callback, pleas check "itemCallback" and "childrenCallback" option.');
     }
 
     return _objectSpread2({}, options, {
@@ -118,7 +123,7 @@
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.warn("Use default children key, pleas check \"childrenKey\" option.");
+      console.warn('Use default children key, pleas check "childrenKey" option.');
     }
 
     return _objectSpread2({}, options, {

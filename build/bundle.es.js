@@ -1,3 +1,8 @@
+/**
+ * a tool for tree walker v0.1.0
+ * author by jzendo, publish date: Mon, 10 Feb 2020 14:41:24 GMT
+ */
+
 const ctor = () => {};
 
 const ensureIteratorHandler = options => {
@@ -6,7 +11,7 @@ const ensureIteratorHandler = options => {
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(`Use default callback, pleas check "itemCallback" and "childrenCallback" option.`);
+    console.warn('Use default callback, pleas check "itemCallback" and "childrenCallback" option.');
   }
 
   return {
@@ -22,7 +27,7 @@ const ensureChildrenKey = options => {
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(`Use default children key, pleas check "childrenKey" option.`);
+    console.warn('Use default children key, pleas check "childrenKey" option.');
   }
 
   return {
@@ -38,7 +43,7 @@ const defaultOptions = options => {
   return {
     ...options_,
     ...ensureChildrenKey(options_),
-    ...ensureIteratorHandler(options_),
+    ...ensureIteratorHandler(options_)
   }
 };
 
@@ -62,7 +67,7 @@ const parseItems = (items, options) => {
     const { childrenKey } = options;
 
     const r = items.map(item => {
-      let { [childrenKey]: children } = item || {};
+      const { [childrenKey]: children } = item || {};
 
       return [
         item ? itemHandlerWrapper(item, options) : null,

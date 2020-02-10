@@ -1,6 +1,14 @@
-import resolve from "@rollup/plugin-node-resolve";
 import babel from "rollup-plugin-babel";
 import json from '@rollup/plugin-json';
+import pkg from './package.json'
+import resolve from "@rollup/plugin-node-resolve";
+
+const banner = `\
+/**
+ * a tool for tree walker v${pkg.version}
+ * author by jzendo, publish date: ${new Date().toUTCString()}
+ */
+`
 
 module.exports = [
   {
@@ -8,7 +16,8 @@ module.exports = [
     output: {
       file: "build/bundle.js",
       name: "MTreeWalker",
-      format: "umd"
+      format: "umd",
+      banner
     },
     plugins: [
       json(),
@@ -22,7 +31,8 @@ module.exports = [
     input: "src/index.js",
     output: {
       file: "build/bundle.es.js",
-      format: "es"
+      format: "es",
+      banner
     },
     plugins: [
       json()
