@@ -1,0 +1,29 @@
+{
+  "name": "tree_walker",
+  "version": "0.1.0",
+  "description": "A tool for walking through tree from top to bottom.",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@rollup/plugin-json": "^4.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "rollup": "^1.31.0",
+    "rollup-plugin-babel": "^4.3.3",
+    "standard": "^14.3.1"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "standard",
+    "lint:fix": "standard --fix"
+  },
+  "standard": {
+    "ignore": [
+      "build",
+      "sample",
+      "node_modules",
+      "rollup.config.js"
+    ]
+  }
+}
