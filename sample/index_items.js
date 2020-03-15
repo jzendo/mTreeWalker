@@ -4,7 +4,7 @@ const treeWalker = require('../build/bundle')
 
 const outputChildren = items =>
   items.map(({ name }) => `child: "${name}"`)
-  .join(', ')
+    .join(', ')
 
 console.log('\n\nData source:\n')
 console.log(JSON.stringify(data, null, 2))

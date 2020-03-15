@@ -1,14 +1,19 @@
-import walkTree from './walkTree'
+import walkTreeWrapper from './walkTreeWrapper'
 
 export default function treeWalker (data, options) {
-  const parser = walkTree(data, options)
+  const walk = walkTreeWrapper(data, options)
 
-  if (parser) {
-    console.log('Walking...')
-    parser()
+  if (walk) {
+    /* istanbul ignore next */
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Walking...')
+    }
+
+    walk()
   } else {
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Skip walking!')
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Ignore!')
     }
   }
 }

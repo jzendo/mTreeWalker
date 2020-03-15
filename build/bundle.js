@@ -1,6 +1,6 @@
 /**
- * a tool for tree walker v0.1.0
- * author by jzendo, publish date: Sun, 15 Mar 2020 05:24:57 GMT
+ * a tool for tree walker v0.1.1
+ * author by jzendo, publish date: Sun, 15 Mar 2020 12:11:58 GMT
  */
 
 (function (global, factory) {
@@ -8,6 +8,22 @@
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.MTreeWalker = factory());
 }(this, (function () { 'use strict';
+
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
+
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      _typeof = function (obj) {
+        return typeof obj;
+      };
+    } else {
+      _typeof = function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+      };
+    }
+
+    return _typeof(obj);
+  }
 
   function _defineProperty(obj, key, value) {
     if (key in obj) {
@@ -108,9 +124,11 @@
     if (options[key]) {
       return options;
     }
+    /* istanbul ignore next */
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn("Use default callback, pleas check \"".concat(key, "\" option."));
+
+    if (process.env.NODE_ENV === 'development') {
+      console.warn("Use default, please check \"".concat(key, "\" option."));
     }
 
     return _objectSpread2({}, options, _defineProperty({}, key, function () {
@@ -122,9 +140,11 @@
     if (options.itemCallback && options.childrenCallback) {
       return options;
     }
+    /* istanbul ignore next */
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Use default callback, pleas check "itemCallback" and "childrenCallback" option.');
+
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Use default, please check "itemCallback" and "childrenCallback" option.');
     }
 
     return _objectSpread2({}, options, {
@@ -137,24 +157,45 @@
     if (options.childrenKey) {
       return options;
     }
+    /* istanbul ignore next */
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Use default children key, pleas check "childrenKey" option.');
+
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Use default, please check "childrenKey" option.');
     }
 
     return _objectSpread2({}, options, {
       childrenKey: 'children'
     });
+  };
+
+  var ensureFireChildrenCallbackAtTop = function ensureFireChildrenCallbackAtTop(options) {
+    var key = 'fireChildrenCallbackAtTop';
+
+    if (options[key] !== undefined) {
+      return options;
+    }
+    /* istanbul ignore next */
+
+
+    if (process.env.NODE_ENV === 'development') {
+      console.warn("Use default, please check \"".concat(key, "\" option."));
+    }
+
+    return _objectSpread2({}, options, _defineProperty({}, key, true));
   }; // Ensure `options` properties
 
 
   var defaultOptions = function defaultOptions(options) {
     var options_ = options || {};
-    return _objectSpread2({}, options_, {}, ensureChildrenKey(options_), {}, ensureIteratorHandler(options_), {}, ensureAllowedChildrenCallback(options_));
+    return _objectSpread2({}, options_, {}, ensureChildrenKey(options_), {}, ensureIteratorHandler(options_), {}, ensureAllowedChildrenCallback(options_), {}, ensureFireChildrenCallbackAtTop(options_));
   };
 
   var toArray = function toArray(collects) {
-    if (Array.isArray(collects)) return collects;
+    if (Array.isArray(collects)) {
+      return collects;
+    }
+
     return Array.prototype.slice.call(collects);
   };
 
@@ -164,9 +205,9 @@
     };
   };
 
-  var iteratorWrapper = function iteratorWrapper(itemHandlers, items, options) {
+  var walkWrapper = function walkWrapper(itemHandlers, items, options, fireChildrenCallback) {
     return function () {
-      options.childrenCallback(items, options);
+      if (fireChildrenCallback) options.childrenCallback(items, options);
       var childrenKey = options.childrenKey;
       itemHandlers.forEach(function (_ref, i) {
         var _ref2 = _slicedToArray(_ref, 2),
@@ -179,37 +220,53 @@
     };
   };
 
-  var parseItems = function parseItems(items, options) {
+  var canCovertToArray = function canCovertToArray(arrayLikeOrString) {
+    // `arrayLikeOrString` legal values:
+    //    "string",
+    //    arguments
+    //    document.getElementsByTagName('div')
+    //    [1, 3, 2]
+    return arrayLikeOrString && (_typeof(arrayLikeOrString) === 'object' || typeof arrayLikeOrString === 'string') && 'length' in arrayLikeOrString;
+  };
+
+  var parseItems = function parseItems(arrayLikeOrString, options) {
+    var fireChildrenCallback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var items = canCovertToArray(arrayLikeOrString) ? toArray(arrayLikeOrString) : null;
+
     if (items && items.length) {
       var childrenKey = options.childrenKey,
           allowedChildrenCallback = options.allowedChildrenCallback;
-      items = toArray(items);
       var r = items.map(function (item) {
-        var _ref3 = item || {},
-            children = _ref3[childrenKey];
+        var children;
+
+        if (_typeof(item) !== 'object') {
+          children = undefined;
+        } else {
+          children = item[childrenKey];
+        }
 
         return [item ? itemHandlerWrapper(item, options) : null, children && allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null];
       });
-      return iteratorWrapper(r, items, options);
+      return walkWrapper(r, items, options, fireChildrenCallback);
     }
 
     return null;
   };
 
-  var walkTree = (function (items, options) {
-    options = defaultOptions(options);
-    return parseItems(items, options);
+  var walkTreeWrapper = (function (items, options) {
+    var currentOptions = defaultOptions(options);
+    return parseItems(items, currentOptions, currentOptions.fireChildrenCallbackAtTop);
   });
 
   function treeWalker(data, options) {
-    var parser = walkTree(data, options);
+    var walk = walkTreeWrapper(data, options);
 
-    if (parser) {
+    if (walk) {
       console.log('Walking...');
-      parser();
+      walk();
     } else {
       if (process.env.NODE_ENV === 'production') {
-        console.log('Skip walking!');
+        console.log('Ignore!');
       }
     }
   }

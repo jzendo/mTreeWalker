@@ -1,15 +1,19 @@
 {
   "name": "mtreewalker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tool for walking through tree from top to bottom.",
   "repository": "https://github.com/jzendo/mTreeWalker.git",
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.8.4",
-    "@babel/preset-env": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
     "@rollup/plugin-json": "^4.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
+    "babel-jest": "^25.1.0",
+    "crypto": "^1.0.1",
+    "html-minifier": "^4.0.0",
+    "jest": "^25.1.0",
     "jsdom": "^16.1.0",
     "rollup": "^1.31.0",
     "rollup-plugin-babel": "^4.3.3",
@@ -21,13 +25,13 @@
     "sample:children": "node ./sample/index_children.js",
     "sample:items": "node ./sample/index_items.js",
     "lint": "standard",
-    "lint:fix": "standard --fix"
+    "lint:fix": "standard --fix",
+    "test": "jest --runInBand"
   },
   "standard": {
     "ignore": [
       "build",
-      "sample",
-      "node_modules",
+      "jest.config.js",
       "rollup.config.js"
     ]
   }

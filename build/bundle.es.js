@@ -1,6 +1,6 @@
 /**
- * a tool for tree walker v0.1.0
- * author by jzendo, publish date: Sun, 15 Mar 2020 05:24:57 GMT
+ * a tool for tree walker v0.1.1
+ * author by jzendo, publish date: Sun, 15 Mar 2020 12:11:58 GMT
  */
 
 const ctor = () => {};
@@ -12,8 +12,9 @@ const ensureAllowedChildrenCallback = options => {
     return options
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn(`Use default callback, pleas check "${key}" option.`);
+  /* istanbul ignore next */
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`Use default, please check "${key}" option.`);
   }
 
   return {
@@ -27,8 +28,9 @@ const ensureIteratorHandler = options => {
     return options
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('Use default callback, pleas check "itemCallback" and "childrenCallback" option.');
+  /* istanbul ignore next */
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Use default, please check "itemCallback" and "childrenCallback" option.');
   }
 
   return {
@@ -43,13 +45,32 @@ const ensureChildrenKey = options => {
     return options
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('Use default children key, pleas check "childrenKey" option.');
+  /* istanbul ignore next */
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Use default, please check "childrenKey" option.');
   }
 
   return {
     ...options,
     childrenKey: 'children'
+  }
+};
+
+const ensureFireChildrenCallbackAtTop = options => {
+  const key = 'fireChildrenCallbackAtTop';
+
+  if (options[key] !== undefined) {
+    return options
+  }
+
+  /* istanbul ignore next */
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`Use default, please check "${key}" option.`);
+  }
+
+  return {
+    ...options,
+    [key]: true
   }
 };
 
@@ -61,13 +82,13 @@ const defaultOptions = options => {
     ...options_,
     ...ensureChildrenKey(options_),
     ...ensureIteratorHandler(options_),
-    ...ensureAllowedChildrenCallback(options_)
+    ...ensureAllowedChildrenCallback(options_),
+    ...ensureFireChildrenCallbackAtTop(options_)
   }
 };
 
-const toArray =  collects => {
-  if (Array.isArray(collects))
-    return collects
+const toArray = collects => {
+  if (Array.isArray(collects)) { return collects }
 
   return Array.prototype.slice.call(collects)
 };
@@ -76,8 +97,8 @@ const itemHandlerWrapper = (item, options) => () => {
   options.itemCallback(item, options);
 };
 
-const iteratorWrapper = (itemHandlers, items, options) => () => {
-  options.childrenCallback(items, options);
+const walkWrapper = (itemHandlers, items, options, fireChildrenCallback) => () => {
+  if (fireChildrenCallback) options.childrenCallback(items, options);
 
   const { childrenKey } = options;
 
@@ -87,12 +108,30 @@ const iteratorWrapper = (itemHandlers, items, options) => () => {
   });
 };
 
-const parseItems = (items, options) => {
+const canCovertToArray = arrayLikeOrString => {
+  // `arrayLikeOrString` legal values:
+  //    "string",
+  //    arguments
+  //    document.getElementsByTagName('div')
+  //    [1, 3, 2]
+  return arrayLikeOrString &&
+    (typeof arrayLikeOrString === 'object' || typeof arrayLikeOrString === 'string') &&
+    ('length' in arrayLikeOrString)
+};
+
+const parseItems = (arrayLikeOrString, options, fireChildrenCallback = true) => {
+  const items = canCovertToArray(arrayLikeOrString) ? toArray(arrayLikeOrString) : null;
+
   if (items && items.length) {
     const { childrenKey, allowedChildrenCallback } = options;
-    items = toArray(items);
     const r = items.map(item => {
-      const { [childrenKey]: children } = item || {};
+      let children;
+
+      if (typeof item !== 'object') {
+        children = undefined;
+      } else {
+        children = item[childrenKey];
+      }
 
       return [
         item ? itemHandlerWrapper(item, options) : null,
@@ -100,26 +139,26 @@ const parseItems = (items, options) => {
       ]
     });
 
-    return iteratorWrapper(r, items, options)
+    return walkWrapper(r, items, options, fireChildrenCallback)
   }
 
   return null
 };
 
-var walkTree = (items, options) => {
-  options = defaultOptions(options);
-  return parseItems(items, options)
+var walkTreeWrapper = (items, options) => {
+  const currentOptions = defaultOptions(options);
+  return parseItems(items, currentOptions, currentOptions.fireChildrenCallbackAtTop)
 };
 
 function treeWalker (data, options) {
-  const parser = walkTree(data, options);
+  const walk = walkTreeWrapper(data, options);
 
-  if (parser) {
+  if (walk) {
     console.log('Walking...');
-    parser();
+    walk();
   } else {
     if (process.env.NODE_ENV === 'production') {
-      console.log('Skip walking!');
+      console.log('Ignore!');
     }
   }
 }
