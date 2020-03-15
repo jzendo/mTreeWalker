@@ -1,3 +1,4 @@
+// Node
 const html = require('./data_dom')
 const treeWalker = require('../build/bundle')
 const jsdom = require("jsdom");
@@ -6,6 +7,9 @@ const { JSDOM } = jsdom;
 
 const dom = new JSDOM(html)
 const document = dom.window.document;
+
+console.log('\n\nData source:\n')
+console.log(html)
 
 const outputChildren = items =>
   items.map(({ dataset }) => {

@@ -1,4 +1,4 @@
-import walkTree from './treeWalker'
+import walkTree from './walkTree'
 
 export default function treeWalker (data, options) {
   const parser = walkTree(data, options)

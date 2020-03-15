@@ -1,6 +1,6 @@
 /**
  * a tool for tree walker v0.1.0
- * author by jzendo, publish date: Tue, 11 Feb 2020 04:24:30 GMT
+ * author by jzendo, publish date: Sun, 15 Mar 2020 05:24:57 GMT
  */
 
 (function (global, factory) {

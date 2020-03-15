@@ -17,6 +17,9 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "sample:dom": "node ./sample/index_dom.js",
+    "sample:children": "node ./sample/index_children.js",
+    "sample:items": "node ./sample/index_items.js",
     "lint": "standard",
     "lint:fix": "standard --fix"
   },

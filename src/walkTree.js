@@ -1,8 +1,7 @@
 import defaultOptions from './defaultOptions.js'
 
-const toArray =  collects => {
-  if (Array.isArray(collects))
-    return collects
+const toArray = collects => {
+  if (Array.isArray(collects)) { return collects }
 
   return Array.prototype.slice.call(collects)
 }
