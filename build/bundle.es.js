@@ -1,6 +1,6 @@
 /**
  * a tool for tree walker v0.1.1
- * author by jzendo, publish date: Sun, 15 Mar 2020 12:11:58 GMT
+ * author by jzendo, publish date: Sun, 15 Mar 2020 13:45:55 GMT
  */
 
 const ctor = () => {};
@@ -74,16 +74,26 @@ const ensureFireChildrenCallbackAtTop = options => {
   }
 };
 
+const composeOptions = (...fns) => {
+  return fns.reduce((prev, current) => {
+    return options => current(prev(options))
+  })
+};
+
 // Ensure `options` properties
 const defaultOptions = options => {
   const options_ = options || {};
 
+  const composedOptions = composeOptions(
+    ensureChildrenKey,
+    ensureIteratorHandler,
+    ensureAllowedChildrenCallback,
+    ensureFireChildrenCallbackAtTop
+  )(options_);
+
   return {
     ...options_,
-    ...ensureChildrenKey(options_),
-    ...ensureIteratorHandler(options_),
-    ...ensureAllowedChildrenCallback(options_),
-    ...ensureFireChildrenCallbackAtTop(options_)
+    ...composedOptions
   }
 };
 
@@ -119,6 +129,8 @@ const canCovertToArray = arrayLikeOrString => {
     ('length' in arrayLikeOrString)
 };
 
+const isValidItemValue = item => item !== null && item !== undefined;
+
 const parseItems = (arrayLikeOrString, options, fireChildrenCallback = true) => {
   const items = canCovertToArray(arrayLikeOrString) ? toArray(arrayLikeOrString) : null;
 
@@ -127,16 +139,23 @@ const parseItems = (arrayLikeOrString, options, fireChildrenCallback = true) => 
     const r = items.map(item => {
       let children;
 
-      if (typeof item !== 'object') {
+      if (item === null || typeof item !== 'object') {
         children = undefined;
       } else {
         children = item[childrenKey];
       }
 
-      return [
-        item ? itemHandlerWrapper(item, options) : null,
-        children && allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null
-      ]
+      const itemCallback = isValidItemValue(item) ? itemHandlerWrapper(item, options) : null;
+
+      const childrenCallback =
+        // 1). valid item value
+        isValidItemValue(children) &&
+        // 2). Allowed item by user hooker
+        allowedChildrenCallback(item, children, options)
+          ? parseItems(children, options)
+          : null;
+
+      return [itemCallback, childrenCallback]
     });
 
     return walkWrapper(r, items, options, fireChildrenCallback)
@@ -154,10 +173,15 @@ function treeWalker (data, options) {
   const walk = walkTreeWrapper(data, options);
 
   if (walk) {
-    console.log('Walking...');
+    /* istanbul ignore next */
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Walking...');
+    }
+
     walk();
   } else {
-    if (process.env.NODE_ENV === 'production') {
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV === 'development') {
       console.log('Ignore!');
     }
   }

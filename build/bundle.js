@@ -1,6 +1,6 @@
 /**
  * a tool for tree walker v0.1.1
- * author by jzendo, publish date: Sun, 15 Mar 2020 12:11:58 GMT
+ * author by jzendo, publish date: Sun, 15 Mar 2020 13:45:55 GMT
  */
 
 (function (global, factory) {
@@ -183,12 +183,25 @@
     }
 
     return _objectSpread2({}, options, _defineProperty({}, key, true));
+  };
+
+  var composeOptions = function composeOptions() {
+    for (var _len = arguments.length, fns = new Array(_len), _key = 0; _key < _len; _key++) {
+      fns[_key] = arguments[_key];
+    }
+
+    return fns.reduce(function (prev, current) {
+      return function (options) {
+        return current(prev(options));
+      };
+    });
   }; // Ensure `options` properties
 
 
   var defaultOptions = function defaultOptions(options) {
     var options_ = options || {};
-    return _objectSpread2({}, options_, {}, ensureChildrenKey(options_), {}, ensureIteratorHandler(options_), {}, ensureAllowedChildrenCallback(options_), {}, ensureFireChildrenCallbackAtTop(options_));
+    var composedOptions = composeOptions(ensureChildrenKey, ensureIteratorHandler, ensureAllowedChildrenCallback, ensureFireChildrenCallbackAtTop)(options_);
+    return _objectSpread2({}, options_, {}, composedOptions);
   };
 
   var toArray = function toArray(collects) {
@@ -229,6 +242,10 @@
     return arrayLikeOrString && (_typeof(arrayLikeOrString) === 'object' || typeof arrayLikeOrString === 'string') && 'length' in arrayLikeOrString;
   };
 
+  var isValidItemValue = function isValidItemValue(item) {
+    return item !== null && item !== undefined;
+  };
+
   var parseItems = function parseItems(arrayLikeOrString, options) {
     var fireChildrenCallback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     var items = canCovertToArray(arrayLikeOrString) ? toArray(arrayLikeOrString) : null;
@@ -239,13 +256,17 @@
       var r = items.map(function (item) {
         var children;
 
-        if (_typeof(item) !== 'object') {
+        if (item === null || _typeof(item) !== 'object') {
           children = undefined;
         } else {
           children = item[childrenKey];
         }
 
-        return [item ? itemHandlerWrapper(item, options) : null, children && allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null];
+        var itemCallback = isValidItemValue(item) ? itemHandlerWrapper(item, options) : null;
+        var childrenCallback = // 1). valid item value
+        isValidItemValue(children) && // 2). Allowed item by user hooker
+        allowedChildrenCallback(item, children, options) ? parseItems(children, options) : null;
+        return [itemCallback, childrenCallback];
       });
       return walkWrapper(r, items, options, fireChildrenCallback);
     }
@@ -262,10 +283,15 @@
     var walk = walkTreeWrapper(data, options);
 
     if (walk) {
-      console.log('Walking...');
+      /* istanbul ignore next */
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Walking...');
+      }
+
       walk();
     } else {
-      if (process.env.NODE_ENV === 'production') {
+      /* istanbul ignore if */
+      if (process.env.NODE_ENV === 'development') {
         console.log('Ignore!');
       }
     }
